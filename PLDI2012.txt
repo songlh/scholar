@@ -1,0 +1,48 @@
+Compiling a high-level language for GPUs: (via language support for architectures and compilers)
+Adaptive input-aware compilation for graphics engines
+And then there were none: a stall-free real-time garbage collector for reconfigurable hardware
+The implicit calculus: a new foundation for generic programming
+Deterministic parallelism via liquid effects
+Speculative linearizability
+Algorithmic profiling
+Understanding and detecting real-world performance bugs
+Input-sensitive profiling
+Language-based control and mitigation of timing channels
+Diderot: a parallel DSL for image analysis and visualization
+Synthesising graphics card programs from DSLs
+Parcae: a system for flexible parallel execution
+JANUS: exploiting parallelism via hindsight
+Reagents: expressing and composing fine-grained concurrency
+Proving acceptability properties of relaxed nondeterministic approximate programs
+Automated error diagnosis using abductive inference
+Efficient state merging in symbolic execution
+Sound and precise analysis of parallel programs through schedule specialization
+Parallelizing top-down interprocedural analyses
+Design and implementation of sparse global analyses for C-like languages
+Fast and precise hybrid type inference for JavaScript
+Race detection for web applications
+Engage: a deployment management system
+Type-directed completion of partial expressions
+Self-stabilizing Java
+Type-directed automatic incrementalization
+Synchronising C/C++ and POWER
+SuperC: parsing all of C by taming the preprocessor
+Test-case reduction for C compiler bugs
+A compiler framework for extracting superword level parallelism
+Speculative separation for privatization and reductions
+Dynamic trace-based analysis of vectorization potential of applications
+Verifying GPU kernels by test amplification
+RockSalt: better, faster, stronger SFI for the x86
+Synthesizing software verifiers from proof rules
+Concurrent data representation synthesis
+Dynamic synthesis for relaxed memory models
+Automated synthesis of symbolic instruction encodings from I/O samples
+A dynamic program analysis to find floating-point accuracy problems
+Chimera: hybrid program analysis for determinism
+Static analysis and compiler design for idempotent processing
+Effective parallelization of loops in the presence of I/O operations
+Polyhedra scanning revisited
+Logical inference techniques for loop parallelization
+Fully automatic and precise detection of thread safety violations
+Scalable and precise dynamic datarace detection for structured parallelism
+Multicore acceleration of priority-based schedulers for concurrency bug detection
