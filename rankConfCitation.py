@@ -15,7 +15,7 @@ def queryCitation(paperList):
 
 		articles = querier.articles
 		
-		print paper, len(articles)
+		#print paper, len(articles)
 
 		if len(articles) != 1:
 			
@@ -28,9 +28,15 @@ def queryCitation(paperList):
 				else:
 					nameCitation[art.attrs['title'][0]] = int(articles[0].attrs['num_citations'][0])
 
-				
+			
+			maxLength = 10000
+
 			for key in nameCitation:
-				print key, nameCitation[key]
+				if len(key) < maxLength:
+					maxLength = len(key)
+					paper = key
+
+			citationDict[paper] = nameCitation[paper]
 
 		else:
 			citationDict[paper] = int(articles[0].attrs['num_citations'][0])
@@ -46,7 +52,11 @@ if __name__=='__main__':
 
 	citationDict = queryCitation(paperList)
 
-	print len(citationDict)
+	#print len(citationDict)
 
 	#for key in citationDict:
 	#	print key, citationDict[key]
+
+	for w in sorted(citationDict, key=citationDict.get, reverse=True):
+		print w, citationDict[w]
+
