@@ -1,0 +1,55 @@
+Commutative set: a language extension for implicit parallel programming
+The tao of parallelism in algorithms
+Parallelism orchestration using DoPE: the degree of parallelism executive
+Data representation synthesis
+Synthesizing geometry constructions
+Synthesis of loop-free programs
+Generalized just-in-time trace compilation using a parallel task farm in a dynamic binary translator
+Brainy: effective selection of data structures
+An SSA-based algorithm for optimal speculative code motion under an execution profile
+Caisson: a hardware description language for secure information flow
+Steno: automatic optimization of declarative queries
+Languages as libraries
+Automatic CPU-GPU communication management and optimization
+Automatic compilation of MATLAB programs for synergistic execution on heterogeneous processors
+EnerJ: approximate data types for safe and general low-power computation
+Understanding POWER multiprocessors
+Partial-coherence abstractions for relaxed memory models
+A case for an SC-preserving compiler
+Probabilistic, modular and scalable inference of typestate specifications
+Predicate abstraction and CEGAR for higher-order model checking
+Mostly-automated verification of low-level programs in computational separation logic
+Toward generating reducible replay logs
+Higher-order test generation
+LeakChaser: helping programmers narrow down causes of memory leaks
+Finding and understanding bugs in C compilers
+Evaluating value-graph translation validation for LLVM
+Safe optimisations for shared-memory concurrent programs
+Spreadsheet table transformations from examples
+Systematic editing: generating program transformations from an example
+A security policy oracle: detecting security holes using multiple API implementations
+Language-independent sandboxing of just-in-time compilation and self-modifying code
+Cruiser: concurrent heap buffer overflow monitoring using lock-free data structures
+Isolating and understanding concurrency errors using reconstructed execution fragments
+Automated atomicity-violation fixing
+NDSeq: runtime checking for nondeterministic sequential specifications of parallel correctness
+Garbage collection for monitoring parametric properties
+LL(*): the foundation of the ANTLR parser generator
+Cause clue clauses: error localization using maximum satisfiability
+kb-anonymity: a model for anonymized behaviour-preserving test and debugging data
+Kremlin: rethinking and rebooting gprof for the multicore age
+Automatic parallelization via matrix multiplication
+ALTER: exploiting breakable dependences for parallelization
+Path-based inductive synthesis for program inversion
+Directed incremental symbolic execution
+Mining hot calling contexts in small space
+Verification of semantic commutativity conditions and inverse operations on linked data structures
+Exploiting the commutativity lattice
+Separation logic + superposition calculus = heap theorem prover
+Precise and compact modular procedure summaries for heap manipulating programs
+On inter-procedural analysis of programs with lists and data
+Scaling abstraction refinement via pruning
+Taming the wildcards: combining definition- and use-site variance
+Taming wildcards in Java's type system
+Composable asynchronous events
+Synchronization via scheduling: techniques for efficiently managing shared state
