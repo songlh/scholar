@@ -2,6 +2,7 @@ import optparse
 import os
 import sys
 import re
+import getopt
 
 try:
 	# Try importing for Python 3
@@ -183,8 +184,11 @@ class ScholarArticleParser(object):
 
 
 		# Now parse out listed articles:
-		for div in self.soup.findAll(ScholarArticleParser._tag_contain_article):
+		for div in self.soup.findAll(ScholarArticleParser._tag_contain_article):	
 			self._parse_article(div)
+			self._clean_article()
+ 			if self.article['title']:
+				self.handle_article(self.article)
 
 
 	def _parse_article(self, div):
@@ -223,7 +227,7 @@ class ScholarArticleParser(object):
 						self.article['num_citations'] = int(match.group(1))
 
 
-		print self.article.as_txt()
+		#print self.article.as_txt()
 				
 
 	@staticmethod
@@ -259,7 +263,141 @@ class ScholarQuerier(object):
 	articles found are collected in the articles member, a list of
 	ScholarArticle instances.
 	"""
-	pass
+	class Parser(ScholarArticleParser):
+		def __init__(self, querier):
+			ScholarArticleParser.__init__(self)
+			self.querier = querier
+
+		def handle_article(self, art):
+			self.querier.add_article(art)
+
+	def __init__(self):
+		self.articles = []
+		self.query = None
+		self.cjar = MozillaCookieJar()
+
+		# If we have a cookie file, load it:
+		if ScholarConf.COOKIE_JAR_FILE and \
+			os.path.exists(ScholarConf.COOKIE_JAR_FILE):
+			try:
+				self.cjar.load(ScholarConf.COOKIE_JAR_FILE, ignore_discard=True)
+				ScholarUtils.log('info', 'loaded cookies file')
+			except Exception as msg:
+				ScholarUtils.log('warn', 'could not load cookies file: %s' % msg)
+				self.cjar = MozillaCookieJar() # Just to be safe
+
+		self.opener = build_opener(HTTPCookieProcessor(self.cjar))
+		self.settings = None # Last settings object, if any
+
+
+	def send_query(self, query):
+		"""
+		This method initiates a search query (a ScholarQuery instance)
+		with subsequent parsing of the response.
+		"""
+		self.clear_articles()
+		self.query = query
+
+		html = self._get_http_response(url=query.get_url(),
+										log_msg='dump of query response HTML',
+										err_msg='results retrieval failed')
+		if html is None:
+			return
+
+		#print len(html)
+
+		self.parse(html)
+
+
+	def parse(self, html):
+		"""
+		This method allows parsing of provided HTML content.
+		"""
+		parser = self.Parser(self)
+		parser.parse(html)
+
+
+	def add_article(self, art):
+		#self.get_citation_data(art)
+		self.articles.append(art)
+
+	def clear_articles(self):
+		"""Clears any existing articles stored from previous queries."""
+		self.articles = []
+
+	def _get_http_response(self, url, log_msg=None, err_msg=None):
+		"""
+		Helper method, sends HTTP request and returns response payload.
+		"""
+		if log_msg is None:
+			log_msg = 'HTTP response data follow'
+		if err_msg is None:
+			err_msg = 'request failed'
+		try:
+			ScholarUtils.log('info', 'requesting %s' % unquote(url))
+
+			req = Request(url=url, headers={'User-Agent': ScholarConf.USER_AGENT})
+			hdl = self.opener.open(req)
+			html = hdl.read()
+
+			ScholarUtils.log('debug', log_msg)
+			ScholarUtils.log('debug', '>>>>' + '-'*68)
+			ScholarUtils.log('debug', 'url: %s' % hdl.geturl())
+			ScholarUtils.log('debug', 'result: %s' % hdl.getcode())
+			ScholarUtils.log('debug', 'headers:\n' + str(hdl.info()))
+			ScholarUtils.log('debug', 'data:\n' + html.decode('utf-8')) # For Python 3
+			ScholarUtils.log('debug', '<<<<' + '-'*68)
+
+			return html
+		except Exception as err:
+			ScholarUtils.log('info', err_msg + ': %s' % err)
+			return None
+
+
+class SearchScholarQuery():
+	def __init__(self):
+		self.sTitle = None 
+		self.sYear = None
+
+	def set_title(self, sTitle):
+		"""Sets words that *all* must be found in the title."""
+		self.sTitle = sTitle
+
+	def set_year(self, year):
+		self.sYear = year
+
+	def get_url(self):
+		self.sTitle = self.sTitle.replace(':', '')
+		self.sTitle = self.sTitle.replace('+', '%252B')
+		wordList = self.sTitle.split()
+
+		sURL = 'http://dl.acm.org/results.cfm?query=acmdlTitle:('
+
+		for word in wordList:
+			sURL += '%252B'
+			sURL += word
+			sURL += '%20'
+
+		if len(wordList) > 0:
+			sURL = sURL[:-3]
+
+		sURL += ')&within=owners.owner=HOSTED&filtered=&dte='
+
+		if self.sYear != None:
+			sURL += self.sYear
+		else:
+			sURL += ""
+
+		sURL += '&bfr='
+
+		if self.sYear != None:
+			sURL += self.sYear
+		else:
+			sURL += ""
+
+		return sURL
+
+
 
 def usage():
 	print '-t', '--title', 'paper title'
@@ -285,10 +423,24 @@ def main(argv):
 			sYear = arg
 		
 
-	if sTitle == None or sYear == None:
+	if sTitle == None :
 		usage()
 		sys.exit(2)
-	
+
+	querier = ScholarQuerier()
+	query = SearchScholarQuery()
+
+	query.set_title(sTitle)
+	query.set_year(sYear)
+
+	querier.send_query(query)
+
+	txt(querier)
+
+def txt(querier):
+	articles = querier.articles
+	for art in articles:
+		print(encode(art.as_txt()) + '\n')
 
 	
 
@@ -305,10 +457,12 @@ if __name__ == '__main__':
 	#html = hdl.read()
 
 	#print html
-	fHTML = open(sys.argv[1], 'r')
-	sHTML = fHTML.read()
-	fHTML.close()
+	#fHTML = open(sys.argv[1], 'r')
+	#sHTML = fHTML.read()
+	#fHTML.close()
 
-	parser = ScholarArticleParser()
+	#parser = ScholarArticleParser()
 
-	parser.parse(sHTML)
+	#parser.parse(sHTML)
+
+	main(sys.argv[1:])
