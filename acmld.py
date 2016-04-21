@@ -102,8 +102,10 @@ class ScholarArticle(object):
 		self.attrs = {
 			'title':         [None, 'Title',          0],
 			'url':           [None, 'URL',            1],
-			'year':          [None, 'Year',           2],
-			'num_citations': [0,    'Citations',      3],
+			'date':          [None, 'Date',           2],
+			'conference':	 [None, 'Conerence',	  3],	
+			'num_citations': [0,    'Citations',      4],
+
         }
 
 		# The citation data in one of the standard export formats,
@@ -144,15 +146,169 @@ class ScholarArticle(object):
 		return '\n'.join(res)
 
 
+class ScholarArticleParser(object):
+	"""
+	ScholarArticleParser can parse HTML document strings obtained from
+	ACM Digital Library. 
+	"""
+	def __init__(self, site=None):
+		self.soup = None
+		self.article = None
+		self.site = site or ScholarConf.SCHOLAR_SITE
+		self.year_re = re.compile(r'\b(?:20|19)\d{2}\b')
+		self.citation = re.compile(r'Citation Count:[\s]+([0-9]+)')
+
+	def handle_article(self, art):
+		"""
+		The parser invokes this callback on each article parsed
+		successfully.  In this base class, the callback does nothing.
+		"""	
+
+	def _clean_article(self):
+		"""
+		This gets invoked after we have parsed an article, to do any
+		needed cleanup/polishing before we hand off the resulting
+		article.
+		"""
+		if self.article['title']:
+			self.article['title'] = self.article['title'].strip()
+
+	def parse(self, html):
+		"""
+		This method initiates parsing of HTML content, cleans resulting
+		content as needed, and notifies the parser instance of
+		resulting instances via the handle_article callback.
+		"""
+		self.soup = BeautifulSoup(html)
+
+
+		# Now parse out listed articles:
+		for div in self.soup.findAll(ScholarArticleParser._tag_contain_article):
+			self._parse_article(div)
+
+
+	def _parse_article(self, div):
+		self.article = ScholarArticle()
+
+		for tag in div:
+			if not hasattr(tag, 'name'):
+				continue
+
+			if tag.name == 'div' and self._tag_has_class(tag, 'title') and tag.a:
+				self.article['title'] = ''.join(tag.a.findAll(text=True))
+				self.article['url'] = self._path2url(tag.a['href'])
+				continue
+
+			
+			if tag.name == 'div' and self._tag_has_class(tag, 'source'):
+				spans = tag.findAll('span')
+				if len(spans) != 2:
+					continue
+
+				if self._tag_has_class(spans[0], 'publicationDate'):
+					self.article['date']  = ''.join(spans[0].findAll(text=True))
+				
+				self.article['conference'] = ''.join(spans[1].findAll(text=True))
+
+			if tag.name == 'div' and self._tag_has_class(tag, 'metrics'):
+				tags = tag.findAll('div')
+				if len(tags) < 2:
+					continue
+				div = tags[1]
+
+				if self._tag_has_class(div, 'metricsCol2') and div.div and div.div.span and self._tag_has_class(div.div.span, 'citedCount'):
+					#print ''.join(div.div.span.findAll(text=True))
+					match = self.citation.match(''.join(div.div.span.findAll(text=True)))
+					if match:
+						self.article['num_citations'] = int(match.group(1))
+
+
+		print self.article.as_txt()
+				
+
+	@staticmethod
+	def _tag_has_class(tag, klass):
+		"""
+		This predicate function checks whether a BeatifulSoup Tag instance
+		has a class attribute.
+		"""
+		res = tag.get('class') or []
+		if type(res) != list:
+ 			# BeautifulSoup 3 can return e.g. 'gs_md_wp gs_ttss',
+			# so split -- conveniently produces a list in any case
+			res = res.split()
+		return klass in res
+
+	@staticmethod
+	def _tag_contain_article(tag):
+		return tag.name == 'div' and ScholarArticleParser._tag_has_class(tag, 'details')	
+
+	def _path2url(self, path):
+		"""Helper, returns full URL in case path isn't one."""
+		if path.startswith('http://'):
+			return path
+		if not path.startswith('/'):
+			path = '/' + path
+		return self.site + path
+
+
+class ScholarQuerier(object):
+	"""
+	ScholarQuerier instances can conduct a search on Google Scholar
+	with subsequent parsing of the resulting HTML content.  The
+	articles found are collected in the articles member, a list of
+	ScholarArticle instances.
+	"""
+	pass
+
+def usage():
+	print '-t', '--title', 'paper title'
+	print '-y', '--year', 'when paper was published'
+
+
+
+def main(argv):
+	try:
+		opts, args = getopt.getopt(argv, 't:y:', ['title==', 'year=='])
+	except getopt.GetoptError:
+		usage()
+		sys.exit(2)
+
+
+	sTitle = None
+	sYear = None
+
+	for opt, arg in opts:
+		if opt in ('-t', '--title'):
+			sTitle = arg
+		elif opt in ('-y', '--year'):
+			sYear = arg
+		
+
+	if sTitle == None or sYear == None:
+		usage()
+		sys.exit(2)
+	
+
+	
+
+
 
 
 
 if __name__ == '__main__':
-	url = 'http://dl.acm.org/results.cfm?query=acmdlTitle:(%252Bunderstanding%20%252Band%20%252Bdetecting%20%252Breal-world%20%252Bperformance%20%252Bbugs)&within=owners.owner=HOSTED&filtered=&dte=&bfr='
-	cjar = MozillaCookieJar()
-	opener = build_opener(HTTPCookieProcessor(cjar))
-	req = Request(url=url, headers={'User-Agent': ScholarConf.USER_AGENT})
-	hdl = opener.open(req)
-	html = hdl.read()
+	#url = 'http://dl.acm.org/results.cfm?query=acmdlTitle:(%252Bunderstanding%20%252Band%20%252Bdetecting%20%252Breal-world%20%252Bperformance%20%252Bbugs)&within=owners.owner=HOSTED&filtered=&dte=&bfr='
+	#cjar = MozillaCookieJar()
+	#opener = build_opener(HTTPCookieProcessor(cjar))
+	#req = Request(url=url, headers={'User-Agent': ScholarConf.USER_AGENT})
+	#hdl = opener.open(req)
+	#html = hdl.read()
 
-	print html
+	#print html
+	fHTML = open(sys.argv[1], 'r')
+	sHTML = fHTML.read()
+	fHTML.close()
+
+	parser = ScholarArticleParser()
+
+	parser.parse(sHTML)
